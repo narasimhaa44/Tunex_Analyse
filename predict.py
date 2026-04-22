@@ -22,7 +22,7 @@ TEMP_FILE = "temp.mp3"
 # 🔥 FEATURE EXTRACTION
 def extract_features(file_path):
     try:
-        y, sr = librosa.load(file_path, duration=30)
+        y, sr = librosa.load(file_path, duration=50)
 
         mfcc = np.mean(librosa.feature.mfcc(y=y, sr=sr, n_mfcc=20), axis=1)
         chroma = np.mean(librosa.feature.chroma_stft(y=y, sr=sr), axis=1)
@@ -103,6 +103,7 @@ for song in songs:
         )
 
         print("Inserted:", result.upserted_id or "updated")
+        print("mood:",mood)
 
     except Exception as e:
         print("Failed:", song.get("title"), e)

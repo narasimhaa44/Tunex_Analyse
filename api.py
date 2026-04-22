@@ -22,14 +22,14 @@ encoder = pickle.load(open("encoder.pkl", "rb"))
 
 def extract_features_from_url(url):
     temp_file = "temp.mp3"
-
-    response = requests.get(url)
+    print("⬇️ Downloading audio...")
+    response = requests.get(url,timeout=10)
     # with open(temp_file, "wb") as f:
     #     f.write(response.content)
     audio_bytes = io.BytesIO(response.content)
-
-    y, sr = librosa.load(audio_bytes, sr=None, duration=30)
-
+    print("🎧 Loading audio...")
+    y, sr = librosa.load(audio_bytes, sr=None, duration=10)
+    print("⚡ Extracting features...")
     mfcc = np.mean(librosa.feature.mfcc(y=y, sr=sr, n_mfcc=20), axis=1)
     chroma = np.mean(librosa.feature.chroma_stft(y=y, sr=sr), axis=1)
     spectral = np.mean(librosa.feature.spectral_centroid(y=y, sr=sr))
@@ -41,13 +41,34 @@ def extract_features_from_url(url):
     return features
 
 
+# @app.post("/predict")
+# def predict_mood(data: dict):
+#     url = data["audioUrl"]
+
+#     features = extract_features_from_url(url)
+
+#     pred = model.predict([features])[0]
+#     mood = encoder.inverse_transform([pred])[0]
+
+#     return {"mood": mood}
+
 @app.post("/predict")
 def predict_mood(data: dict):
-    url = data["audioUrl"]
+    try:
+        print("🚀 Request received")
 
-    features = extract_features_from_url(url)
+        url = data["audioUrl"]
 
-    pred = model.predict([features])[0]
-    mood = encoder.inverse_transform([pred])[0]
+        features = extract_features_from_url(url)
 
-    return {"mood": mood}
+        print("🤖 Predicting...")
+        pred = model.predict([features])[0]
+        mood = encoder.inverse_transform([pred])[0]
+
+        print("✅ Done:", mood)
+
+        return {"mood": mood}
+
+    except Exception as e:
+        print("❌ Error:", e)
+        return {"error": str(e)}
